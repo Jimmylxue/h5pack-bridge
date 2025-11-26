@@ -4,27 +4,28 @@ function generateId() {
 
 class H5PackBridge {
   callbacks = new Map();
-  modules = new Map();
+  modules = {};
   isAvailable = false;
   constructor() {
     if (typeof window !== 'undefined' && window.ReactNativeWebView) {
       this.isAvailable = true;
     }
     this.setupEventListeners();
-    return new Proxy(this, {
-      get(target, prop) {
-        // 如果访问的是已注册的模块名，返回模块实例
-        if (target.modules.has(prop)) {
-          return target.modules.get(prop);
-        }
-        // 否则返回类的原有属性
-        return target[prop];
-      }
-    });
   }
-  // 注册模块
+  // 使用 getter 替代 Proxy
+  get camera() {
+    return this.modules.camera;
+  }
+  get location() {
+    return this.modules.location;
+  }
+  // 注册模块 - 使用泛型确保类型安全
   registerModule(moduleName, module) {
-    this.modules.set(moduleName, module);
+    this.modules[moduleName] = module;
+  }
+  // 获取模块 - 类型安全的方法
+  getModule(moduleName) {
+    return this.modules?.[moduleName];
   }
   callNative(module, action, params) {
     return new Promise((resolve, reject) => {
@@ -119,17 +120,32 @@ class CameraModule extends BaseModule {
     super(bridgeManager, 'camera');
   }
   async open(options) {
+    const params = {
+      cameraType: options.cameraType || 'back',
+      // front|back
+      mediaType: 'photo',
+      saveToPhotos: false,
+      ...options
+    };
     try {
-      return await this.call('open', {
-        cameraType: options.cameraType || 'back' // front|back
-      });
+      return await this.call('open', params);
     } catch (error) {
       return this.handleError(error, 'Failed to open camera');
     }
   }
   async chooseImage(options = {}) {
+    const params = {
+      mediaType: 'photo',
+      includeBase64: options?.includeBase64 || false,
+      maxWidth: options?.maxWidth || 1024,
+      maxHeight: options?.maxHeight || 1024,
+      quality: options?.quality || 0.8,
+      selectionLimit: options?.selectionLimit || 9,
+      // 最多选择数量
+      ...options
+    };
     try {
-      return await this.call('chooseImage', options);
+      return await this.call('chooseImage', params);
     } catch (error) {
       return this.handleError(error, 'Failed to open camera');
     }
@@ -151,8 +167,27 @@ class CameraModule extends BaseModule {
   }
 }
 
+class LocationModule extends BaseModule {
+  constructor(bridgeManager) {
+    super(bridgeManager, 'location');
+  }
+  async getCurrentPosition(options = {}) {
+    const params = {
+      enableHighAccuracy: false,
+      maximumAge: 0,
+      ...options
+    };
+    try {
+      return await this.call('getCurrentPosition', params);
+    } catch (error) {
+      return this.handleError(error, 'Failed to get current location');
+    }
+  }
+}
+
 const h5packBridge = new H5PackBridge();
 h5packBridge.registerModule('camera', new CameraModule(h5packBridge));
+h5packBridge.registerModule('location', new LocationModule(h5packBridge));
 // 自动挂载到全局对象
 if (typeof window !== 'undefined') {
   window.h5packBridge = h5packBridge;

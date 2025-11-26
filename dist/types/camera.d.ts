@@ -34,3 +34,7 @@ export interface CameraOptions extends OptionsCommon {
     saveToPhotos?: boolean;
     cameraType?: CameraType;
 }
+export interface ImageLibraryOptions extends OptionsCommon {
+    selectionLimit?: number;
+    restrictMimeTypes?: string[];
+}

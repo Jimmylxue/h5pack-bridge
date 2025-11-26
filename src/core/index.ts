@@ -1,3 +1,4 @@
+import { LocationModule } from '@src/modules/LocationModule'
 import { CameraModule } from '../modules/CameraModule'
 import { generateId } from '../utils'
 
@@ -7,9 +8,18 @@ type TCallBack = {
 	timeoutId: NodeJS.Timeout
 }
 
+// 定义模块类型映射
+type ModuleMap = {
+	camera?: CameraModule
+	location?: LocationModule
+}
+
+type ModuleName = keyof ModuleMap
+
+export type H5PackBridgeInstance = H5PackBridge & ModuleMap
 export class H5PackBridge {
 	callbacks: Map<string, TCallBack> = new Map()
-	modules: Map<string, CameraModule> = new Map()
+	modules: ModuleMap = {}
 
 	public isAvailable: boolean = false
 
@@ -19,22 +29,28 @@ export class H5PackBridge {
 		}
 
 		this.setupEventListeners()
-
-		return new Proxy(this, {
-			get(target, prop: string) {
-				// 如果访问的是已注册的模块名，返回模块实例
-				if (target.modules.has(prop)) {
-					return target.modules.get(prop)
-				}
-				// 否则返回类的原有属性
-				return (target as any)[prop]
-			},
-		})
 	}
 
-	// 注册模块
-	registerModule(moduleName: string, module: any) {
-		this.modules.set(moduleName, module)
+	// 使用 getter 替代 Proxy
+	get camera(): CameraModule | undefined {
+		return this.modules.camera
+	}
+
+	get location(): LocationModule | undefined {
+		return this.modules.location
+	}
+
+	// 注册模块 - 使用泛型确保类型安全
+	registerModule<T extends ModuleName>(
+		moduleName: T,
+		module: ModuleMap[T]
+	): void {
+		this.modules[moduleName] = module
+	}
+
+	// 获取模块 - 类型安全的方法
+	getModule<T extends ModuleName>(moduleName: T): ModuleMap[T] | undefined {
+		return this.modules?.[moduleName] as ModuleMap[T] | undefined
 	}
 
 	callNative(module: string, action: string, params: any) {
