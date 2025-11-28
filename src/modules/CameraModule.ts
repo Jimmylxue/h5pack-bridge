@@ -7,7 +7,7 @@ export class CameraModule extends BaseModule {
 		super(bridgeManager, 'camera')
 	}
 
-	async open(options: CameraOptions) {
+	async open(options: CameraOptions = {}) {
 		const params = {
 			cameraType: options.cameraType || 'back', // front|back
 			mediaType: 'photo',
@@ -18,6 +18,14 @@ export class CameraModule extends BaseModule {
 			return await this.call<TAsset>('open', params)
 		} catch (error: any) {
 			return this.handleError(error, 'Failed to open camera')
+		}
+	}
+
+	async scan() {
+		try {
+			return await this.call<TAsset>('scan')
+		} catch (error: any) {
+			return this.handleError(error, 'Failed to open scan')
 		}
 	}
 
@@ -34,7 +42,7 @@ export class CameraModule extends BaseModule {
 		try {
 			return await this.call<TAsset[]>('chooseImage', params)
 		} catch (error: any) {
-			return this.handleError(error, 'Failed to open camera')
+			return this.handleError(error, 'Failed to choose image')
 		}
 	}
 

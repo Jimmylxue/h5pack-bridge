@@ -125,7 +125,7 @@ class CameraModule extends BaseModule {
   constructor(bridgeManager) {
     super(bridgeManager, 'camera');
   }
-  async open(options) {
+  async open(options = {}) {
     const params = {
       cameraType: options.cameraType || 'back',
       // front|back
@@ -137,6 +137,20 @@ class CameraModule extends BaseModule {
       return await this.call('open', params);
     } catch (error) {
       return this.handleError(error, 'Failed to open camera');
+    }
+  }
+  async scan(options = {}) {
+    const params = {
+      cameraType: options.cameraType || 'back',
+      // front|back
+      mediaType: 'photo',
+      saveToPhotos: false,
+      ...options
+    };
+    try {
+      return await this.call('scan', params);
+    } catch (error) {
+      return this.handleError(error, 'Failed to open scan');
     }
   }
   async chooseImage(options = {}) {
@@ -153,7 +167,7 @@ class CameraModule extends BaseModule {
     try {
       return await this.call('chooseImage', params);
     } catch (error) {
-      return this.handleError(error, 'Failed to open camera');
+      return this.handleError(error, 'Failed to choose image');
     }
   }
   async checkPermission() {
