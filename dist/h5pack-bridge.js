@@ -25,6 +25,9 @@ class H5PackBridge {
   get location() {
     return this.modules.location;
   }
+  get recordAudio() {
+    return this.modules.recordAudio;
+  }
   // 注册模块 - 使用泛型确保类型安全
   registerModule(moduleName, module) {
     this.modules[moduleName] = module;
@@ -139,16 +142,9 @@ class CameraModule extends BaseModule {
       return this.handleError(error, 'Failed to open camera');
     }
   }
-  async scan(options = {}) {
-    const params = {
-      cameraType: options.cameraType || 'back',
-      // front|back
-      mediaType: 'photo',
-      saveToPhotos: false,
-      ...options
-    };
+  async scan() {
     try {
-      return await this.call('scan', params);
+      return await this.call('scan');
     } catch (error) {
       return this.handleError(error, 'Failed to open scan');
     }
@@ -205,9 +201,78 @@ class LocationModule extends BaseModule {
   }
 }
 
+class RecordAudioModule extends BaseModule {
+  constructor(bridgeManager) {
+    super(bridgeManager, 'recordAudio');
+  }
+  /**
+   * 开始录音
+   * @returns 录音文件路径
+   */
+  async start(options = {}) {
+    try {
+      return await this.call('start', options);
+    } catch (error) {
+      return this.handleError(error, 'Failed to start record audio');
+    }
+  }
+  /**
+   * 停止录音
+   * @returns 录音文件路径和录音时长
+   */
+  async stop() {
+    try {
+      return await this.call('stop');
+    } catch (error) {
+      return this.handleError(error, 'Failed to stop record audio');
+    }
+  }
+  /**
+   * 取消录音
+   */
+  async cancel() {
+    try {
+      return await this.call('cancel');
+    } catch (error) {
+      return this.handleError(error, 'Failed to cancel record audio');
+    }
+  }
+  /**
+   * 重新开始录音
+   */
+  async restart(options = {}) {
+    try {
+      return await this.call('restart', options);
+    } catch (error) {
+      return this.handleError(error, 'Failed to restart record audio');
+    }
+  }
+  /**
+   * 检查权限
+   */
+  async checkPermission() {
+    try {
+      return await this.call('checkPermission');
+    } catch (error) {
+      return this.handleError(error, 'Failed to check record audio permission');
+    }
+  }
+  /**
+   * 申请权限
+   */
+  async requestPermission() {
+    try {
+      return await this.call('requestPermission');
+    } catch (error) {
+      return this.handleError(error, 'Failed to request record audio permission');
+    }
+  }
+}
+
 const h5packBridge = new H5PackBridge();
 h5packBridge.registerModule('camera', new CameraModule(h5packBridge));
 h5packBridge.registerModule('location', new LocationModule(h5packBridge));
+h5packBridge.registerModule('recordAudio', new RecordAudioModule(h5packBridge));
 // 自动挂载到全局对象
 if (typeof window !== 'undefined') {
   window.h5packBridge = h5packBridge;

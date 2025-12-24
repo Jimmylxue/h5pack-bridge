@@ -1,6 +1,7 @@
 import { LocationModule } from '@src/modules/LocationModule'
 import { CameraModule } from '../modules/CameraModule'
 import { generateId } from '../utils'
+import { RecordAudioModule } from '@src/modules/RecordAudioModule'
 
 type TCallBack = {
 	resolve: (value: unknown) => void
@@ -12,6 +13,7 @@ type TCallBack = {
 type ModuleMap = {
 	camera?: CameraModule
 	location?: LocationModule
+	recordAudio?: RecordAudioModule
 }
 
 type ModuleName = keyof ModuleMap
@@ -38,6 +40,10 @@ export class H5PackBridge {
 
 	get location(): LocationModule | undefined {
 		return this.modules.location
+	}
+
+	get recordAudio(): RecordAudioModule | undefined {
+		return this.modules.recordAudio
 	}
 
 	// 注册模块 - 使用泛型确保类型安全
