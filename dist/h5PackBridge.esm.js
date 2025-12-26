@@ -22,6 +22,9 @@ class H5PackBridge {
   get recordAudio() {
     return this.modules.recordAudio;
   }
+  get app() {
+    return this.modules.app;
+  }
   // 注册模块 - 使用泛型确保类型安全
   registerModule(moduleName, module) {
     this.modules[moduleName] = module;
@@ -115,6 +118,33 @@ class BaseModule {
   handleError(error, defaultMessage = 'Operation failed') {
     console.error(`[${this.moduleName}] Error:`, error);
     throw new Error(error.message || defaultMessage);
+  }
+}
+
+class AppModule extends BaseModule {
+  constructor(bridgeManager) {
+    super(bridgeManager, 'app');
+  }
+  async exit(options = {}) {
+    try {
+      return await this.call('exit', options);
+    } catch (error) {
+      return this.handleError(error, 'Failed to exit');
+    }
+  }
+  async relaunch(options = {}) {
+    try {
+      return await this.call('relaunch', options);
+    } catch (error) {
+      return this.handleError(error, 'Failed to relaunch');
+    }
+  }
+  async refresh(options = {}) {
+    try {
+      return await this.call('refresh', options);
+    } catch (error) {
+      return this.handleError(error, 'Failed to refresh');
+    }
   }
 }
 
@@ -267,6 +297,7 @@ const h5packBridge = new H5PackBridge();
 h5packBridge.registerModule('camera', new CameraModule(h5packBridge));
 h5packBridge.registerModule('location', new LocationModule(h5packBridge));
 h5packBridge.registerModule('recordAudio', new RecordAudioModule(h5packBridge));
+h5packBridge.registerModule('app', new AppModule(h5packBridge));
 // 自动挂载到全局对象
 if (typeof window !== 'undefined') {
   window.h5packBridge = h5packBridge;

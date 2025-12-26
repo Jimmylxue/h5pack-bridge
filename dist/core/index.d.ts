@@ -1,6 +1,7 @@
 import { LocationModule } from '@src/modules/LocationModule';
 import { CameraModule } from '../modules/CameraModule';
 import { RecordAudioModule } from '@src/modules/RecordAudioModule';
+import { AppModule } from '@src/modules/AppModule';
 type TCallBack = {
     resolve: (value: unknown) => void;
     reject: (reason: any) => void;
@@ -10,6 +11,7 @@ type ModuleMap = {
     camera?: CameraModule;
     location?: LocationModule;
     recordAudio?: RecordAudioModule;
+    app?: AppModule;
 };
 type ModuleName = keyof ModuleMap;
 export type H5PackBridgeInstance = H5PackBridge & ModuleMap;
@@ -21,6 +23,7 @@ export declare class H5PackBridge {
     get camera(): CameraModule | undefined;
     get location(): LocationModule | undefined;
     get recordAudio(): RecordAudioModule | undefined;
+    get app(): AppModule | undefined;
     registerModule<T extends ModuleName>(moduleName: T, module: ModuleMap[T]): void;
     getModule<T extends ModuleName>(moduleName: T): ModuleMap[T] | undefined;
     callNative(module: string, action: string, params: any): Promise<unknown>;
